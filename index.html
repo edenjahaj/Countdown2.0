@@ -1,0 +1,1184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>COUNTDOWN</title>
+  <style>
+    :root{
+      --bg:#060709; --fg:#e9ecef; --mut:#9aa4ad;
+      --line:rgba(255,255,255,.10);
+      --danger:#ff2d2d; --ok:#20c997;
+      --shadow: 0 30px 140px rgba(0,0,0,.80);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(900px 520px at 50% 10%, #161c22 0%, var(--bg) 55%, #000 100%);
+      color:var(--fg);
+      font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      min-height:100vh;
+      padding:16px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+
+    /* PHONE SHELL */
+    .phone{
+      width:min(420px, 100%);
+      border:1px solid var(--line);
+      border-radius:28px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .topbar{
+      padding:14px 14px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.38);
+    }
+    .brand{display:flex; align-items:center; gap:10px; min-width:0}
+    .dot{
+      width:10px;height:10px;border-radius:999px;background:var(--danger);
+      box-shadow:0 0 18px rgba(255,45,45,.65);
+      animation:pulse 1.4s infinite;
+      flex:0 0 auto;
+    }
+    @keyframes pulse{0%,100%{transform:scale(1)} 50%{transform:scale(1.6)}}
+    .brandText{min-width:0}
+    .title{
+      font-weight:950; letter-spacing:.8px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      font-size:14px;
+    }
+    .sub{color:var(--mut); font-size:12px}
+    .chip{
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.30);
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--mut);
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+
+    /* SCREEN */
+    .screen{
+      position:relative;
+      padding:14px;
+      min-height: 580px;
+      background:
+        radial-gradient(520px 340px at 50% 0%, rgba(255,45,45,.09), rgba(0,0,0,0) 55%),
+        linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.22));
+    }
+
+    .timerCard{
+      border:1px solid rgba(255,45,45,.30);
+      background: rgba(255,45,45,.06);
+      border-radius:22px;
+      padding:14px;
+      box-shadow: 0 0 0 1px rgba(255,45,45,.08);
+      position:sticky;
+      top:12px;
+      z-index:2;
+      backdrop-filter: blur(6px);
+    }
+    .timerLabel{
+      font-size:12px; color:#ffb1b1; letter-spacing:.6px; text-transform:uppercase;
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+    }
+    .timerValue{
+      margin-top:8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight:1000;
+      letter-spacing:1px;
+      font-size: 22px;
+      color:#ffd7d7;
+      text-shadow: 0 0 12px rgba(255,45,45,.25);
+      text-align:center;
+      padding:8px 10px;
+      border-radius:16px;
+      background: rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .deadline{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--mut);
+      text-align:center;
+    }
+    .bar{
+      height:10px;border-radius:999px; border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      overflow:hidden; margin-top:10px;
+    }
+    .bar i{
+      display:block; height:100%; width:0%;
+      background: linear-gradient(90deg, rgba(255,45,45,.25), rgba(255,45,45,.95));
+      transition: width .25s ease;
+    }
+
+    /* CHAT */
+    .chat{
+      margin-top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding-bottom:84px;
+    }
+    .bubble{
+      max-width: 92%;
+      padding:10px 12px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.30);
+      color:var(--fg);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .bubble.sys{
+      align-self:flex-start;
+      border-color: rgba(255,45,45,.25);
+      background: rgba(255,45,45,.05);
+      color:#ffe1e1;
+    }
+    .bubble.me{
+      align-self:flex-end;
+      background: rgba(255,255,255,.04);
+      color:#eaf3ff;
+    }
+    .meta{
+      margin-top:6px;
+      font-size:11px;
+      color:var(--mut);
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
+
+    /* INPUT */
+    .inputBar{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      padding:12px;
+      border-top:1px solid var(--line);
+      background: rgba(0,0,0,.58);
+      display:flex; gap:10px; align-items:center;
+      backdrop-filter: blur(8px);
+      z-index:10;
+    }
+    input{
+      width:100%;
+      padding:11px 12px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color:var(--fg);
+      outline:none;
+    }
+    button{
+      appearance:none;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--fg);
+      padding:11px 12px;
+      border-radius:16px;
+      cursor:pointer;
+      font-weight:900;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease;
+      white-space:nowrap;
+    }
+    button:hover{ background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.18) }
+    button:active{ transform: translateY(1px) }
+    button.danger{ border-color: rgba(255,45,45,.40); background: rgba(255,45,45,.06) }
+    button.ok{ border-color: rgba(32,201,151,.35); background: rgba(32,201,151,.06) }
+
+    /* OVERLAYS */
+    .overlay{
+      position:absolute; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      padding:16px;
+      background: radial-gradient(780px 320px at 50% 20%, rgba(255,45,45,.12), rgba(0,0,0,.86) 70%, rgba(0,0,0,.94));
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      z-index:30;
+    }
+    .modal{
+      width:min(560px,100%);
+      border:1px solid var(--line);
+      border-radius:22px;
+      background: rgba(0,0,0,.70);
+      box-shadow: var(--shadow);
+      padding:16px;
+      margin:auto;
+    }
+    .warnTitle{font-weight:1000; letter-spacing:.8px}
+    .small{font-size:12px; color:var(--mut)}
+    .toggle{
+      display:flex; align-items:center; gap:10px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding:10px 12px;
+      border-radius:16px;
+      margin-top:12px;
+    }
+    .toggle input{width:auto}
+    .toggle span{font-size:12px; color:var(--mut)}
+
+    /* GLITCH + SHAKE */
+    .glitchLayer{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:0;
+      background: repeating-linear-gradient(0deg,
+        rgba(255,255,255,.08) 0px,
+        rgba(255,255,255,.08) 1px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,0,0,0) 4px);
+      mix-blend-mode: overlay;
+      transition: opacity .08s ease;
+      z-index:25;
+    }
+    .screen.glitching .glitchLayer{opacity:.98}
+    .shake{ animation: shake .12s 4; }
+    @keyframes shake{
+      0%{transform:translate(0,0)}
+      20%{transform:translate(6px,-4px)}
+      40%{transform:translate(-7px,5px)}
+      60%{transform:translate(7px,5px)}
+      80%{transform:translate(-6px,-5px)}
+      100%{transform:translate(0,0)}
+    }
+
+    /* HUGE FACE SLAM (full screen) */
+    .slam{
+      position:absolute; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      z-index:60;
+      background: rgba(0,0,0,.86);
+    }
+    .slam.on{display:flex}
+    .slamInner{
+      width:min(520px, 92vw);
+      text-align:center;
+      border-radius:26px;
+      border:1px solid rgba(255,45,45,.45);
+      background: rgba(20,0,0,.55);
+      box-shadow: 0 30px 180px rgba(0,0,0,.96);
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .slamFlash{
+      position:absolute; inset:-20%;
+      background: radial-gradient(circle at 50% 50%, rgba(255,45,45,.35), rgba(0,0,0,.95) 58%);
+      pointer-events:none;
+      mix-blend-mode: screen;
+      opacity:.0;
+    }
+    .slam.on .slamFlash{
+      animation: flicker .07s 18;
+    }
+    @keyframes flicker{
+      0%{opacity:.05; transform:translate(0,0)}
+      50%{opacity:1; transform:translate(6px,-3px)}
+      100%{opacity:.10; transform:translate(-4px,6px)}
+    }
+    .slamFace{
+      width:min(460px, 85vw);
+      aspect-ratio: 1/1;
+      filter: drop-shadow(0 0 30px rgba(255,45,45,.65));
+      animation: facePop .09s 5;
+    }
+    @keyframes facePop{
+      from{transform:scale(.60) rotate(-1deg)}
+      to{transform:scale(1.08) rotate(1deg)}
+    }
+    .slamText{
+      margin-top:10px;
+      font-weight:1000;
+      letter-spacing:1px;
+      color:#ffd7d7;
+      font-size: clamp(18px, 4.5vw, 34px);
+      text-shadow: 0 0 14px rgba(255,45,45,.35);
+    }
+    .slamSub{
+      margin-top:6px;
+      color:#ffaaaa;
+      font-size:13px;
+    }
+
+    /* POPUP (mid scares) */
+    .popup{
+      position:absolute;
+      left:14px; right:14px;
+      top: 132px;
+      border-radius:22px;
+      border:1px solid rgba(255,45,45,.35);
+      background: rgba(10,0,0,.60);
+      box-shadow: 0 30px 140px rgba(0,0,0,.88);
+      padding:14px;
+      display:none;
+      z-index:40;
+      transform: translateY(-6px);
+    }
+    .popup.on{display:block; animation: popIn .12s 1;}
+    @keyframes popIn{from{opacity:0; transform:translateY(-18px) scale(.98)} to{opacity:1; transform:translateY(-6px) scale(1)}}
+    .popupTitle{font-weight:1000; letter-spacing:.6px; color:#ffd2d2}
+    .popupText{margin-top:8px; color:#ffb5b5; font-size:13px; line-height:1.35}
+    .popupRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+
+    /* ENDING */
+    .ending{
+      position:absolute; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      background: #000;
+      z-index:70;
+      overflow:auto;
+      padding:16px;
+    }
+    .ending.on{display:flex}
+    .endingCard{
+      width:min(520px,100%);
+      border-radius:22px;
+      border:1px solid rgba(255,45,45,.35);
+      background: rgba(10,0,0,.60);
+      box-shadow: 0 30px 180px rgba(0,0,0,.97);
+      padding:16px;
+      text-align:left;
+    }
+    .endingTitle{font-weight:1000; letter-spacing:1px; color:#ffd7d7; font-size:18px}
+    .endingBody{margin-top:10px; color:#ffb5b5; font-size:13px; line-height:1.45}
+    .endingChoices{margin-top:14px; display:flex; gap:10px; flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <div class="phone" id="phone">
+    <div class="topbar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div class="brandText">
+          <div class="title">COUNTDOWN</div>
+          <div class="sub" id="subLine">Survey mode: active</div>
+        </div>
+      </div>
+      <div class="chip" id="tabsChip">Tabs: 1</div>
+    </div>
+
+    <div class="screen" id="screen">
+      <div class="glitchLayer"></div>
+
+      <div class="timerCard">
+        <div class="timerLabel">
+          <span class="mono">COUNTDOWN</span>
+          <span class="small mono" id="nameTag">name: (unset)</span>
+        </div>
+        <div class="timerValue" id="timer">--D:--:--:--</div>
+        <div class="deadline mono" id="deadline">—</div>
+        <div class="bar"><i id="fearBar"></i></div>
+      </div>
+
+      <div class="popup" id="popup">
+        <div class="popupTitle mono" id="popupTitle">SYSTEM</div>
+        <div class="popupText mono" id="popupText">…</div>
+        <div class="popupRow">
+          <button class="danger" id="popupOk">OK</button>
+          <button id="popupNo">NO</button>
+        </div>
+      </div>
+
+      <!-- HUGE FACE SLAM -->
+      <div class="slam" id="slam">
+        <div class="slamInner">
+          <div class="slamFlash"></div>
+          <svg class="slamFace" viewBox="0 0 200 200" aria-hidden="true">
+            <defs>
+              <radialGradient id="g" cx="50%" cy="40%" r="70%">
+                <stop offset="0%" stop-color="#ff6b6b" stop-opacity=".72"/>
+                <stop offset="70%" stop-color="#300" stop-opacity=".72"/>
+                <stop offset="100%" stop-color="#000" stop-opacity="1"/>
+              </radialGradient>
+            </defs>
+            <rect width="200" height="200" fill="url(#g)"/>
+            <circle cx="70" cy="85" r="18" fill="#000"/>
+            <circle cx="130" cy="85" r="18" fill="#000"/>
+            <circle cx="70" cy="85" r="8" fill="#ff2d2d"/>
+            <circle cx="130" cy="85" r="8" fill="#ff2d2d"/>
+            <path d="M50 140 Q100 182 150 140" stroke="#ff2d2d" stroke-width="12" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div class="slamText mono" id="slamText">DON'T BLINK.</div>
+          <div class="slamSub mono" id="slamSub">…</div>
+        </div>
+      </div>
+
+      <div class="chat" id="chat"></div>
+
+      <div class="inputBar">
+        <input id="answerInput" placeholder="Type your answer…" autocomplete="off"/>
+        <button class="ok" id="sendBtn">Send</button>
+      </div>
+
+      <!-- WARNING -->
+      <div class="overlay" id="warningOverlay" role="dialog" aria-modal="true">
+        <div class="modal">
+          <div class="warnTitle mono">WARNING</div>
+          <div class="small" style="margin-top:10px">
+            This experience contains <b>rapid flashing</b>, <b>flicker</b>, <b>jumps</b>, and <b>strong audio bursts</b>.
+            It may trigger seizures for people with <b>photosensitive epilepsy</b> or cause discomfort.
+            If you are sensitive, enable <b>Reduced effects</b> or leave.
+          </div>
+
+          <div class="toggle">
+            <input type="checkbox" id="reducedFx"/>
+            <span>Reduced effects (less flashing/shake/audio)</span>
+          </div>
+
+          <div class="toggle" style="margin-top:10px">
+            <input type="checkbox" id="muteAudio"/>
+            <span>Mute audio (recommended if sensitive)</span>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px">
+            <button class="danger" id="enterBtn">I Understand — Enter</button>
+            <button id="leaveBtn">Leave</button>
+          </div>
+
+          <div class="small" style="margin-top:12px">
+            Fictional horror UI. It does not predict anything real.
+          </div>
+        </div>
+      </div>
+
+      <!-- ENDING -->
+      <div class="ending" id="ending">
+        <div class="endingCard">
+          <div class="endingTitle mono" id="endingTitle">ENDING</div>
+          <div class="endingBody mono" id="endingBody">…</div>
+          <div class="endingChoices" id="endingChoices"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  // Elements
+  const screen = $("screen");
+  const chat = $("chat");
+  const timerEl = $("timer");
+  const deadlineEl = $("deadline");
+  const fearBar = $("fearBar");
+  const tabsChip = $("tabsChip");
+  const subLine = $("subLine");
+  const nameTag = $("nameTag");
+
+  const answerInput = $("answerInput");
+  const sendBtn = $("sendBtn");
+
+  const warningOverlay = $("warningOverlay");
+  const reducedFxInput = $("reducedFx");
+  const muteAudioInput = $("muteAudio");
+
+  const popup = $("popup");
+  const popupTitle = $("popupTitle");
+  const popupText = $("popupText");
+  const popupOk = $("popupOk");
+  const popupNo = $("popupNo");
+
+  const slam = $("slam");
+  const slamText = $("slamText");
+  const slamSub = $("slamSub");
+
+  const ending = $("ending");
+  const endingTitle = $("endingTitle");
+  const endingBody = $("endingBody");
+  const endingChoices = $("endingChoices");
+
+  // Storage keys
+  const LS_NAME = "cd_name_v4";
+  const LS_ENDAT = "cd_endAt_v4";
+  const LS_TOTAL = "cd_total_v4";
+  const LS_CONSENT = "cd_consent_v4";
+  const LS_REDUCED = "cd_reduced_v4";
+  const LS_MUTE = "cd_mute_v4";
+  const LS_SURVEY = "cd_survey_v4"; // JSON answers
+
+  // Multi-tab (storage events only)
+  const tabId = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
+  const peerTabs = new Map();
+
+  // Settings
+  let reducedFx = (localStorage.getItem(LS_REDUCED) === "1");
+  let muteAudio = (localStorage.getItem(LS_MUTE) === "1");
+
+  // Audio
+  let audioCtx = null;
+  function ensureAudio(){
+    if (muteAudio) return;
+    audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+  }
+  function beep(freq=880, dur=0.07, vol=0.04){
+    try{
+      if (muteAudio) return;
+      ensureAudio();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.value = freq;
+      g.gain.value = vol;
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + dur);
+    }catch{}
+  }
+  function noiseBurst(dur=0.55, vol=0.12){
+    try{
+      if (muteAudio) return;
+      ensureAudio();
+      const sr = audioCtx.sampleRate;
+      const len = Math.floor(sr * dur);
+      const buffer = audioCtx.createBuffer(1, len, sr);
+      const data = buffer.getChannelData(0);
+      for(let i=0;i<len;i++) data[i] = (Math.random()*2-1) * (1 - i/len);
+      const src = audioCtx.createBufferSource();
+      const g = audioCtx.createGain();
+      g.gain.value = vol;
+      src.buffer = buffer;
+      src.connect(g); g.connect(audioCtx.destination);
+      src.start();
+    }catch{}
+  }
+
+  // Helpers
+  function glitch(ms=180){
+    if (reducedFx) ms = Math.min(ms, 120);
+    screen.classList.add("glitching");
+    setTimeout(() => screen.classList.remove("glitching"), ms);
+  }
+  function shake(){
+    if (reducedFx) return;
+    screen.classList.add("shake");
+    setTimeout(()=>screen.classList.remove("shake"), 520);
+  }
+  function setFear(v){
+    const vv = Math.max(0, Math.min(100, v));
+    fearBar.style.width = vv + "%";
+  }
+  function nowMeta(){
+    const d = new Date();
+    return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  }
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;")
+      .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+  function addBubble(text, who="sys"){
+    const b = document.createElement("div");
+    b.className = "bubble " + who;
+    b.innerHTML = `<div class="mono">${escapeHtml(text)}</div><div class="meta">${nowMeta()}</div>`;
+    chat.appendChild(b);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // Format countdown: D:HH:MM:SS
+  function fmtDHMS(seconds){
+    seconds = Math.max(0, Math.floor(seconds));
+    const DAY = 24*3600;
+    const D = Math.floor(seconds / DAY);
+    seconds %= DAY;
+    const H = String(Math.floor(seconds / 3600)).padStart(2,"0");
+    seconds %= 3600;
+    const M = String(Math.floor(seconds / 60)).padStart(2,"0");
+    const S = String(seconds % 60).padStart(2,"0");
+    return `${D}D:${H}:${M}:${S}`;
+  }
+
+  // Weighted random timer:
+  // Most common: under 5 days
+  // Some: 8–10 days (~25%)
+  // Ultra-rare: >50 years (0.01%)
+  function pickTimerSeconds(){
+    const r = Math.random();
+    const DAY = 24*3600;
+
+    if (r < 0.0001){ // 0.01%
+      const years = 50 + Math.random()*30;
+      return Math.floor(years * 365 * DAY + Math.random()*DAY);
+    }
+    if (r < 0.2501){ // ~25%
+      return Math.floor((8*DAY) + Math.random()*(2*DAY));
+    }
+    // common: 1 hour to <5 days
+    const min = 3600;
+    const max = 5*DAY - 1;
+    return Math.floor(min + Math.random()*(max-min));
+  }
+
+  // State
+  let name = localStorage.getItem(LS_NAME) || "";
+  let endAt = Number(localStorage.getItem(LS_ENDAT)) || 0;
+  let totalSec = Number(localStorage.getItem(LS_TOTAL)) || 0;
+  let fear = 8;
+  let ended = false;
+
+  // Survey state
+  let survey = {};
+  try { survey = JSON.parse(localStorage.getItem(LS_SURVEY) || "{}"); } catch { survey = {}; }
+
+  function syncUI(){
+    reducedFx = (localStorage.getItem(LS_REDUCED) === "1");
+    muteAudio = (localStorage.getItem(LS_MUTE) === "1");
+
+    name = localStorage.getItem(LS_NAME) || survey.name || "";
+    nameTag.textContent = "name: " + (name ? name : "(unset)");
+    deadlineEl.textContent = endAt ? ("deadline: " + new Date(endAt).toLocaleString()) : "—";
+    setFear(fear);
+  }
+
+  function ensureCountdown(){
+    if (endAt && totalSec) return;
+    totalSec = pickTimerSeconds();
+    endAt = Date.now() + totalSec*1000;
+    localStorage.setItem(LS_TOTAL, String(totalSec));
+    localStorage.setItem(LS_ENDAT, String(endAt));
+  }
+
+  // Popup (mid scares)
+  let popupResolver = null;
+  function showPopup(title, text){
+    popupTitle.textContent = title;
+    popupText.textContent = text;
+    popup.classList.add("on");
+    return new Promise((resolve) => { popupResolver = resolve; });
+  }
+  function hidePopup(result){
+    popup.classList.remove("on");
+    if (popupResolver){ popupResolver(result); popupResolver = null; }
+  }
+  popupOk.addEventListener("click", () => hidePopup("ok"));
+  popupNo.addEventListener("click", () => hidePopup("no"));
+
+  // HUGE FACE SLAM
+  let slamLock = false;
+  function faceSlam(mainText, subText){
+    if (slamLock) return;
+    slamLock = true;
+
+    slamText.textContent = mainText;
+    slamSub.textContent = subText || "";
+
+    slam.classList.add("on");
+
+    // Big scare effects (reduced if reducedFx)
+    if (!reducedFx){
+      noiseBurst(0.42, 0.14);
+      beep(990, 0.08, 0.08);
+      beep(660, 0.10, 0.09);
+      glitch(260);
+      shake();
+    } else {
+      noiseBurst(0.22, 0.06);
+      beep(880, 0.06, 0.03);
+      glitch(120);
+    }
+
+    setTimeout(() => {
+      slam.classList.remove("on");
+      slamLock = false;
+    }, reducedFx ? 650 : 1100);
+  }
+
+  function scaryPulse(){
+    glitch(reducedFx ? 110 : 220);
+    if (!reducedFx) shake();
+    beep(660, 0.05, reducedFx ? 0.015 : 0.03);
+    fear = Math.min(100, fear + (reducedFx ? 2 : 6));
+    setFear(fear);
+  }
+
+  // 30+ questions
+  // NOTE: kept non-sensitive and not asking for address/location.
+  const questions = [
+    { key:"name", q:"What is your name?", v:(a)=>a.trim().length>=2, hint:"(2+ characters)" },
+    { key:"age", q:"How old are you?", v:(a)=>/^\d{1,2}$/.test(a.trim()) && +a>=5 && +a<=99, hint:"(number only)" },
+    { key:"alone", q:"Are you alone right now? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"lights", q:"Are the lights on? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"fear", q:"Pick one: dark / silence / mirrors / unknown / other", v:(a)=>a.trim().length>=3 },
+    { key:"door", q:"Is your door closed? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"headphones", q:"Are you wearing headphones? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"sound", q:"Do you hear any sound right now? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"heartbeat", q:"Type a number from 1–10: how fast is your heartbeat?", v:(a)=>/^\d+$/.test(a.trim()) && +a>=1 && +a<=10 },
+    { key:"window", q:"Is there a window behind you? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"mirror", q:"Do you have a mirror in the room? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"mirrorLook", q:"Will you look into it if I ask? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"locks", q:"Do you lock your door at night? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"hide", q:"Where would you hide? (closet / under bed / behind door / other)", v:(a)=>a.trim().length>=3 },
+    { key:"run", q:"If you run, do you run up or down? (up/down)", v:(a)=>/^(up|down)$/i.test(a.trim()) },
+    { key:"turn", q:"If you heard footsteps behind you… would you turn around? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"brave", q:"Type one word: brave or careful", v:(a)=>/^(brave|careful)$/i.test(a.trim()) },
+    { key:"night", q:"Do you prefer night or day? (night/day)", v:(a)=>/^(night|day)$/i.test(a.trim()) },
+    { key:"text", q:"When you get scared, do you text someone? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"numbers", q:"Pick a number: 3 / 7 / 13 / 21", v:(a)=>/^(3|7|13|21)$/.test(a.trim()) },
+    { key:"watch", q:"Do you feel watched sometimes? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"dream", q:"Do you remember your last nightmare? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"shadow", q:"Quick: do you see any shadows moving? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"phone", q:"Is your phone on silent? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"blink", q:"How often do you blink when nervous? (rare/often)", v:(a)=>/^(rare|often)$/i.test(a.trim()) },
+    { key:"stairs", q:"Do you have stairs nearby? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"room", q:"Are you in a bedroom? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"sound2", q:"If you heard a knock… would you answer? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"choice", q:"Pick: HIDE / RUN / FREEZE", v:(a)=>/^(hide|run|freeze)$/i.test(a.trim()) },
+    { key:"color", q:"What color feels dangerous? (one word)", v:(a)=>a.trim().length>=3 },
+    { key:"cold", q:"Is the room colder than usual? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"trust", q:"Do you trust this app? (yes/no)", v:(a)=>/^(yes|no)$/i.test(a.trim()) },
+    { key:"final", q:"Last question: say 'continue' or say 'stop'", v:(a)=>/^(continue|stop)$/i.test(a.trim()) }
+  ];
+
+  let qIndex = 0;
+
+  function saveSurvey(){
+    localStorage.setItem(LS_SURVEY, JSON.stringify(survey));
+  }
+
+  function askNext(){
+    while (qIndex < questions.length && survey[questions[qIndex].key]) qIndex++;
+
+    if (qIndex >= questions.length){
+      addBubble("Survey complete.", "sys");
+      addBubble("Now we wait.", "sys");
+      answerInput.placeholder = "Type anything…";
+      return;
+    }
+
+    const q = questions[qIndex];
+    addBubble(q.q + (q.hint ? " " + q.hint : ""), "sys");
+    answerInput.placeholder = "Answer: " + q.key;
+  }
+
+  function handleAnswer(raw){
+    const text = raw.trim();
+    if (!text) return;
+    addBubble(text, "me");
+
+    if (qIndex < questions.length){
+      const q = questions[qIndex];
+      if (!q.v(text)){
+        addBubble("Invalid answer. Try again.", "sys");
+        if (!reducedFx) faceSlam("WRONG.", "Try again.");
+        scaryPulse();
+        return;
+      }
+
+      survey[q.key] = text;
+
+      if (q.key === "name"){
+        localStorage.setItem(LS_NAME, text);
+        name = text;
+      }
+
+      saveSurvey();
+      localStorage.setItem("cd_profile_changed_v4", String(Date.now()));
+      qIndex++;
+
+      // Creepy reactions (stronger)
+      const reactions = [
+        "Saved.",
+        "Good.",
+        "That was easy.",
+        "I will remember that.",
+        "Don’t lie to me.",
+        "You hesitated.",
+        "Your hands are shaking."
+      ];
+      addBubble(reactions[Math.floor(Math.random()*reactions.length)], "sys");
+
+      // occasional face slam after answers
+      const slamChance = reducedFx ? 0.10 : 0.22;
+      if (Math.random() < slamChance){
+        faceSlam("DON'T BLINK.", `Answer recorded: ${q.key}`);
+      } else {
+        scaryPulse();
+      }
+
+      syncUI();
+      askNext();
+      return;
+    }
+
+    // Free chat after survey
+    const replies = [
+      "Keep going.",
+      "It’s listening.",
+      "Don’t stop typing.",
+      "You can’t distract it.",
+      "Noted."
+    ];
+    addBubble(replies[Math.floor(Math.random()*replies.length)], "sys");
+    if (Math.random() < (reducedFx ? 0.10 : 0.25)){
+      faceSlam("LOOK UP.", "…too late.");
+    } else {
+      scaryPulse();
+    }
+  }
+
+  sendBtn.addEventListener("click", () => {
+    const v = answerInput.value;
+    answerInput.value = "";
+    handleAnswer(v);
+  });
+  answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter"){
+      const v = answerInput.value;
+      answerInput.value = "";
+      handleAnswer(v);
+    }
+  });
+
+  // Random mid-timer scares
+  let scareTimer = null;
+  function scheduleRandomScares(){
+    clearTimeout(scareTimer);
+    const base = reducedFx ? 20000 : 12000;
+    const jitter = reducedFx ? 16000 : 9000;
+    const next = base + Math.random()*jitter;
+
+    scareTimer = setTimeout(async () => {
+      if (warningOverlay.style.display === "flex" || ending.classList.contains("on")) {
+        scheduleRandomScares(); return;
+      }
+
+      const left = Math.ceil((endAt - Date.now()) / 1000);
+      if (left <= 0) { scheduleRandomScares(); return; }
+
+      const dangerZone = left <= 3600; // last hour
+      const panicZone  = left <= 300;  // last 5 minutes
+
+      const roll = Math.random();
+
+      // stronger over time:
+      if (panicZone && roll < 0.75){
+        faceSlam("YOU ARE BEING HUNTED.", "Don’t look away.");
+        addBubble("…it is close.", "sys");
+      } else if (dangerZone && roll < 0.55){
+        scaryPulse();
+        addBubble("I can read your pattern.", "sys");
+        if (!reducedFx && Math.random() < 0.35) faceSlam("DON'T BLINK.", "…");
+      } else if (roll < 0.28){
+        scaryPulse();
+        const res = await showPopup("SYSTEM CHECK", "Do you want to continue?");
+        addBubble(res === "ok" ? "Good." : "You don’t get to choose.", "sys");
+        if (res !== "ok" && !reducedFx) faceSlam("NO.", "Continue.");
+      } else if (roll < 0.44){
+        scaryPulse();
+        addBubble("Permission granted: camera (fake).", "sys");
+        addBubble("Movement detected (fake).", "sys");
+      } else {
+        if (!reducedFx) glitch(160);
+        addBubble("…", "sys");
+      }
+
+      scheduleRandomScares();
+    }, next);
+  }
+
+  // Ending system
+  function openEnding(type){
+    ending.classList.add("on");
+    clearTimeout(scareTimer);
+
+    const A = survey;
+    const nm = (A.name || name || "subject").trim();
+
+    const endings = {
+      HUNTED: {
+        title: "ENDING: HUNTED",
+        body:
+`The timer hits zero.
+
+The screen writes your name by itself:
+"${nm}"
+
+It learned enough.
+
+You have one move.`,
+        choices: [
+          { label:"RUN", next:"RUN" },
+          { label:"HIDE", next:"HIDE" },
+          { label:"FREEZE", next:"FREEZE" }
+        ]
+      },
+      RUN: {
+        title: "ENDING: FOOTSTEPS",
+        body:
+`You run.
+The footsteps keep pace.
+The app displays:
+"WRONG DIRECTION."`,
+        choices: [
+          { label:"RESTART (new timer)", action:"RESTART" },
+          { label:"CLOSE", action:"CLOSE" }
+        ]
+      },
+      HIDE: {
+        title: "ENDING: STILLNESS",
+        body:
+`You hide.
+The screen goes silent.
+
+Then:
+"IT LIKES QUIET PLACES."`,
+        choices: [
+          { label:"RESTART (new timer)", action:"RESTART" },
+          { label:"CLOSE", action:"CLOSE" }
+        ]
+      },
+      FREEZE: {
+        title: "ENDING: EYES OPEN",
+        body:
+`You freeze.
+You try not to blink.
+
+The app says:
+"GOOD."`,
+        choices: [
+          { label:"RESTART (new timer)", action:"RESTART" },
+          { label:"CLOSE", action:"CLOSE" }
+        ]
+      },
+      SPARED: {
+        title: "ENDING: SPARED",
+        body:
+`The timer reaches zero.
+
+The app pauses.
+It re-reads your answers.
+
+Then:
+"NOT TODAY."`,
+        choices: [
+          { label:"CLOSE", action:"CLOSE" },
+          { label:"RESTART (new timer)", action:"RESTART" }
+        ]
+      }
+    };
+
+    const e = endings[type] || endings.HUNTED;
+    endingTitle.textContent = e.title;
+    endingBody.textContent = e.body;
+
+    endingChoices.innerHTML = "";
+    for (const c of e.choices){
+      const btn = document.createElement("button");
+      btn.className = (c.label.includes("RESTART") ? "danger" : "ok");
+      btn.textContent = c.label;
+      btn.addEventListener("click", () => {
+        if (c.next) openEnding(c.next);
+        if (c.action === "RESTART") restartNew();
+        if (c.action === "CLOSE") closeEnding();
+      });
+      endingChoices.appendChild(btn);
+    }
+
+    // final slam
+    faceSlam("YOU ARE BEING HUNTED.", "Ending unlocked.");
+  }
+
+  function closeEnding(){
+    ending.classList.remove("on");
+    scheduleRandomScares();
+  }
+
+  function restartNew(){
+    const ok = confirm("Generate a NEW random countdown? (This changes the timer.)");
+    if (!ok) return;
+
+    totalSec = pickTimerSeconds();
+    endAt = Date.now() + totalSec*1000;
+
+    localStorage.setItem(LS_TOTAL, String(totalSec));
+    localStorage.setItem(LS_ENDAT, String(endAt));
+    localStorage.setItem("cd_timer_changed_v4", String(Date.now()));
+
+    ended = false;
+    fear = 10;
+    setFear(fear);
+    deadlineEl.textContent = "deadline: " + new Date(endAt).toLocaleString();
+
+    addBubble("New countdown assigned.", "sys");
+    scheduleRandomScares();
+  }
+
+  // Tabs
+  function tabsCount(){
+    const now = Date.now();
+    for (const [id, ts] of peerTabs.entries()){
+      if (now - ts > 4000) peerTabs.delete(id);
+    }
+    return peerTabs.size + 1;
+  }
+  function updateTabsChip(){
+    tabsChip.textContent = "Tabs: " + tabsCount();
+  }
+  function pingTabs(){
+    localStorage.setItem("cd_ping_v4", JSON.stringify({t:"ping", from:tabId, at:Date.now()}));
+  }
+  function pongTabs(to){
+    localStorage.setItem("cd_pong_v4", JSON.stringify({t:"pong", from:tabId, to, at:Date.now()}));
+  }
+
+  window.addEventListener("storage", (e) => {
+    if (!e.key || !e.newValue) return;
+
+    if (e.key === "cd_ping_v4"){
+      try{
+        const msg = JSON.parse(e.newValue);
+        if (msg.from !== tabId){
+          peerTabs.set(msg.from, Date.now());
+          pongTabs(msg.from);
+          updateTabsChip();
+        }
+      }catch{}
+    }
+    if (e.key === "cd_pong_v4"){
+      try{
+        const msg = JSON.parse(e.newValue);
+        if (msg.to === tabId){
+          peerTabs.set(msg.from, Date.now());
+          updateTabsChip();
+        }
+      }catch{}
+    }
+    if (e.key === "cd_timer_changed_v4" || e.key === "cd_profile_changed_v4"){
+      name = localStorage.getItem(LS_NAME) || name;
+      endAt = Number(localStorage.getItem(LS_ENDAT)) || endAt;
+      totalSec = Number(localStorage.getItem(LS_TOTAL)) || totalSec;
+      try { survey = JSON.parse(localStorage.getItem(LS_SURVEY) || "{}"); } catch {}
+      ended = false;
+      syncUI();
+    }
+    if (e.key === "cd_end_v4"){
+      if (!ended){
+        ended = true;
+        openEnding("HUNTED");
+      }
+    }
+  });
+
+  // Tick
+  let tick = null;
+  function startTick(){
+    stopTick();
+    tick = setInterval(() => {
+      if (!endAt){
+        timerEl.textContent = "--D:--:--:--";
+        return;
+      }
+      const left = Math.ceil((endAt - Date.now()) / 1000);
+      timerEl.textContent = fmtDHMS(left);
+
+      if (!ended){
+        // fear rises slowly; faster near end
+        if (left <= 3600) fear = Math.min(100, fear + (reducedFx ? 0.10 : 0.22));
+        else fear = Math.min(100, fear + (reducedFx ? 0.03 : 0.06));
+        setFear(fear);
+
+        // last minute: heavier
+        if (left <= 60 && left > 0){
+          if (left % 10 === 0){
+            scaryPulse();
+            addBubble(String(left) + "…", "sys");
+          }
+          if (!reducedFx && left <= 12 && left % 2 === 0){
+            glitch(160);
+          }
+        }
+
+        if (left <= 0){
+          ended = true;
+
+          // choose ending based on some answers (fictional)
+          const cautious =
+            ((survey.locks||"").toLowerCase()==="yes") +
+            ((survey.turn||"").toLowerCase()==="no") +
+            ((survey.alone||"").toLowerCase()==="no") +
+            ((survey.brave||"").toLowerCase()==="careful");
+
+          const spare = cautious >= 3 && Math.random() < 0.55;
+
+          localStorage.setItem("cd_end_v4", String(Date.now()));
+          if (spare) openEnding("SPARED");
+          else openEnding("HUNTED");
+        }
+      }
+    }, 250);
+  }
+  function stopTick(){ if (tick) clearInterval(tick); tick = null; }
+
+  // Warning overlay
+  function showWarning(show){ warningOverlay.style.display = show ? "flex" : "none"; }
+
+  $("enterBtn").addEventListener("click", () => {
+    reducedFx = !!reducedFxInput.checked;
+    muteAudio = !!muteAudioInput.checked;
+    localStorage.setItem(LS_REDUCED, reducedFx ? "1" : "0");
+    localStorage.setItem(LS_MUTE, muteAudio ? "1" : "0");
+    localStorage.setItem(LS_CONSENT, "1");
+    ensureAudio(); // unlock
+
+    showWarning(false);
+
+    ensureCountdown();
+    syncUI();
+
+    addBubble("Welcome.", "sys");
+    addBubble("Answer the questions. The timer will keep moving.", "sys");
+    addBubble("This is fiction. It’s just a game.", "sys");
+
+    // opening scare
+    if (!reducedFx) faceSlam("DON'T BLINK.", "Survey begins.");
+
+    askNext();
+    startTick();
+    scheduleRandomScares();
+  });
+
+  $("leaveBtn").addEventListener("click", () => {
+    showWarning(false);
+    subLine.textContent = "Session ended.";
+    timerEl.textContent = "--D:--:--:--";
+    stopTick();
+  });
+
+  // Boot (always show warning)
+  reducedFxInput.checked = reducedFx;
+  muteAudioInput.checked = muteAudio;
+  showWarning(true);
+
+  // Restore / sync UI for returning users
+  if (endAt && totalSec){
+    syncUI();
+  }
+
+  // tab presence
+  setInterval(() => { pingTabs(); updateTabsChip(); }, 1500);
+  pingTabs(); updateTabsChip();
+})();
+</script>
+</body>
+</html>
